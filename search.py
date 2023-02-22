@@ -87,17 +87,102 @@ def depthFirstSearch(problem):
     print("Start's successors:", problem.getSuccessors(problem.getStartState()))
     """
     "*** YOUR CODE HERE ***"
-    print("Test:")
+    frontier = util.Stack()
+    frontier.push(problem.getStartState())
+    actions = util.Stack()
+    expanded = []
+    
+    while not (frontier.isEmpty()):
+        node = frontier.pop()
+        if problem.isGoalState(node):
+            print("Goalstate",node)
+            path = actions.pop()
+            return path
+
+        if node not in expanded:
+            expanded.append(node)
+            children = []
+            action = []
+            if not(actions.isEmpty()):
+                action = actions.pop()
+            for triple in problem.getSuccessors(node):
+                if(triple[0] not in expanded):    
+                    newaction = []
+                    for move in action:
+                        newaction.append(move)
+                    newaction.append(triple[1])
+                    frontier.push(triple[0])
+                    actions.push(newaction)
+
     util.raiseNotDefined()
 
 def breadthFirstSearch(problem):
     """Search the shallowest nodes in the search tree first."""
     "*** YOUR CODE HERE ***"
+    frontier = util.PriorityQueue()
+    frontier.push([problem.getStartState(),0],0)
+    expanded = []
+    outerActions = util.PriorityQueue()
+    while not (frontier.isEmpty()):
+        nodeInfo = frontier.pop()
+        node = nodeInfo[0]
+        nodePriority = nodeInfo[1]
+        innerActions = []
+        if problem.isGoalState(node):
+            print("Goalstate",node)
+            path = outerActions.pop()
+            return path
+
+        
+
+        if node not in expanded:
+            parentAction = []
+            expanded.append(node)
+            if not(outerActions.isEmpty()):
+                parentAction = outerActions.pop()
+            for triple in problem.getSuccessors(node):
+                if(triple[0] not in expanded): 
+                    newAction = []   
+                    for action in parentAction:
+                        newAction.append(action)
+                    newAction.append(triple[1])
+                    frontier.push([triple[0],nodePriority+1],nodePriority+1)
+                    innerActions.append(newAction)
+        else:
+            outerActions.pop()
+
+
+        for i in range(len(innerActions)):
+            outerActions.push(innerActions[i],nodePriority+1)
     util.raiseNotDefined()
 
 def uniformCostSearch(problem):
     """Search the node of least total cost first."""
     "*** YOUR CODE HERE ***"
+    frontier  = util.PriorityQueue()
+    frontier.push([problem.getStartState(),0],0)
+    actions = util.PriorityQueue()
+    expanded = []
+    while(not(frontier.isEmpty())):
+        node = frontier.pop()
+        if (problem.isGoalState(node[0])):
+            path = actions.pop()
+            return path
+        parentAction = []
+        if not (actions.isEmpty()):
+            parentAction = actions.pop()
+        if node[0] not in expanded:
+            expanded.append(node[0])
+            for successor in problem.getSuccessors(node[0]):
+                if(successor[0] not in expanded):
+                    childAction = []
+                    for move in parentAction:
+                        childAction.append(move)
+                    childAction.append(successor[1])
+                    childCost = problem.getCostOfActions(childAction)
+                    frontier.push([successor[0],childCost],childCost)
+                    actions.push(childAction,childCost)
+
     util.raiseNotDefined()
 
 def nullHeuristic(state, problem=None):
@@ -110,6 +195,30 @@ def nullHeuristic(state, problem=None):
 def aStarSearch(problem, heuristic=nullHeuristic):
     """Search the node that has the lowest combined cost and heuristic first."""
     "*** YOUR CODE HERE ***"
+    frontier  = util.PriorityQueue()
+    frontier.push([problem.getStartState(),0],0)
+    actions = util.PriorityQueue()
+    expanded = []
+    while(not(frontier.isEmpty())):
+        node = frontier.pop()
+        if (problem.isGoalState(node[0])):
+            path = actions.pop()
+            return path
+        parentAction = []
+        if not (actions.isEmpty()):
+            parentAction = actions.pop()
+        if node[0] not in expanded:
+            expanded.append(node[0])
+            for successor in problem.getSuccessors(node[0]):
+                if(successor[0] not in expanded):
+                    childAction = []
+                    for move in parentAction:
+                        childAction.append(move)
+                    childAction.append(successor[1])
+                    hCost = heuristic(successor[0],problem)
+                    childCost = problem.getCostOfActions(childAction)+hCost
+                    frontier.push([successor[0],childCost],childCost)
+                    actions.push(childAction,childCost)
     util.raiseNotDefined()
 
 

@@ -272,7 +272,6 @@ class CornersProblem(search.SearchProblem):
 
     You must select a suitable state space and successor function
     """
-
     def __init__(self, startingGameState):
         """
         Stores the walls, pacman's starting position and corners.
@@ -281,6 +280,8 @@ class CornersProblem(search.SearchProblem):
         self.startingPosition = startingGameState.getPacmanPosition()
         top, right = self.walls.height-2, self.walls.width-2
         self.corners = ((1,1), (1,top), (right, 1), (right, top))
+        #print("Corners",self.corners)
+        #print("Walls",self.walls)
         for corner in self.corners:
             if not startingGameState.hasFood(*corner):
                 print('Warning: no food in corner ' + str(corner))
@@ -295,6 +296,9 @@ class CornersProblem(search.SearchProblem):
         space)
         """
         "*** YOUR CODE HERE ***"
+        #state = ([position,[reached corners],priority],priority)
+        return [self.startingPosition,[False for corner in self.corners]]
+
         util.raiseNotDefined()
 
     def isGoalState(self, state):
@@ -302,7 +306,14 @@ class CornersProblem(search.SearchProblem):
         Returns whether this search state is a goal state of the problem.
         """
         "*** YOUR CODE HERE ***"
+        stateCorners = state[1]
+        #print("Position",state[0])
+        #print("Corners",state[1])
+        if all(x == True for x in stateCorners):
+            return True
+        return False
         util.raiseNotDefined()
+        
 
     def getSuccessors(self, state):
         """
@@ -314,7 +325,6 @@ class CornersProblem(search.SearchProblem):
             state, 'action' is the action required to get there, and 'stepCost'
             is the incremental cost of expanding to that successor
         """
-
         successors = []
         for action in [Directions.NORTH, Directions.SOUTH, Directions.EAST, Directions.WEST]:
             # Add a successor state to the successor list if the action is legal
@@ -326,9 +336,26 @@ class CornersProblem(search.SearchProblem):
 
             "*** YOUR CODE HERE ***"
 
+            x,y = state[0]
+            dx,dy = Actions.directionToVector(action)
+            nextx, nexty = int(x+dx),int(y+dy)
+            newPosition = (nextx,nexty)
+            hitsWall = self.walls[nextx][nexty]
+            successorCorner = []
+            for corner in state[1]:
+                successorCorner.append(corner)
+            if not (hitsWall):
+                for i in range(len(self.corners)):
+                    if self.corners[i] == newPosition:
+                        successorCorner[i] = True
+                #print("Old Position: ", state[0],"New Position: ", newPosition,successorCorner,self.corners)
+                successors.append([[newPosition,successorCorner],action,1])
+            
+
+            #print(Directions.NORTH)
         self._expanded += 1 # DO NOT CHANGE
         return successors
-
+    
     def getCostOfActions(self, actions):
         """
         Returns the cost of a particular sequence of actions.  If those actions
@@ -341,6 +368,14 @@ class CornersProblem(search.SearchProblem):
             x, y = int(x + dx), int(y + dy)
             if self.walls[x][y]: return 999999
         return len(actions)
+
+    
+
+
+    
+    
+    
+
 
 
 def cornersHeuristic(state, problem):
@@ -360,7 +395,42 @@ def cornersHeuristic(state, problem):
     walls = problem.walls # These are the walls of the maze, as a Grid (game.py)
 
     "*** YOUR CODE HERE ***"
-    return 0 # Default to trivial solution
+    x,y = state[0]
+    stateCorners = state[1]
+    heur = 0
+    for i in range(len(corners)):
+        step = 0
+        if(not (stateCorners[i])):
+            xdisp = abs(corners[i][0] - x) 
+            ydisp = abs(corners[i][1] - y)
+            step = xdisp + ydisp
+        if step >= heur:
+            heur = step
+
+    return heur
+
+    #More insane heuristic
+
+    # heur = 9999
+    # if (sum(stateCorners) < len(corners)):
+    #     for i in range(len(corners)):
+    #         step = 0
+    #         if not(stateCorners[i]):
+    #             xdisp = corners[i][0] - x
+    #             ydisp = corners[i][1] - y
+    #             # path = walls[min(x,corners[i][0]):max(x,corners[i][0])+1][min(y,corners[i][1]):max(y,corners[i][1])+1]
+    #             # for wall in path:
+    #             #     if wall:
+    #             #         step = step + 1
+                
+    #             step =  abs(xdisp) + abs(ydisp)
+    #         if step <= heur:
+    #             heur = step
+    #     return heur
+    # else:
+    #     return 0 #My heuristic 
+# Default to trivial solution
+
 
 class AStarCornersAgent(SearchAgent):
     "A SearchAgent for FoodSearchProblem using A* and your foodHeuristic"
