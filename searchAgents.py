@@ -309,9 +309,13 @@ class CornersProblem(search.SearchProblem):
         stateCorners = state[1]
         #print("Position",state[0])
         #print("Corners",state[1])
-        if all(x == True for x in stateCorners):
-            return True
-        return False
+        
+        for corner in stateCorners:
+            if not corner:
+                return False
+        # if all(x == True for x in stateCorners):
+        #     return True
+        return True
         util.raiseNotDefined()
         
 
@@ -524,7 +528,180 @@ def foodHeuristic(state, problem):
     """
     position, foodGrid = state
     "*** YOUR CODE HERE ***"
-    return 0
+
+
+    foodList = foodGrid.asList()
+    heur = 0
+    #3/4 Heuristic 9551 nodes
+    # for food in foodList:
+    #     currHeur = abs(position[0]-food[0]) + abs(position[1] - food[1])
+    #     if(currHeur >= heur):
+    #         heur = currHeur
+    # return heur
+
+
+    #4/4 Heuristic 8107 Nodes
+    # heur = 0
+    # if(len(foodList) > 1):
+    #     minStep = float('inf')
+    #     minIndex = 0
+    #     for i in range(len(foodList)):
+    #         food = foodList[i]
+    #         currHeur = abs(position[0]-food[0]) + abs(position[1] - food[1])
+    #         if currHeur <= minStep:
+    #             minStep = currHeur
+    #             minIndex = i
+    #     maxStep = float('-inf')
+    #     for i in range(len(foodList)):
+    #         food = foodList[i]
+    #         minFood = foodList[minIndex]
+    #         currHeur = abs(minFood[0]-food[0]) + abs(minFood[1] - food[1])
+    #         if currHeur >= maxStep:
+    #             maxStep = currHeur
+    #     maxStep += minStep
+    #     return maxStep
+    # else:
+    #     for food in foodList:
+    #         currHeur = abs(position[0]-food[0]) + abs(position[1] - food[1])
+    #         if(currHeur >= heur):
+    #             heur = currHeur
+    #     return heur
+
+
+
+    #Fusion 7689 Nodes
+    # heur = 0
+    # heur1 = 0
+    # if(len(foodList) > 1):
+    #     minStep = float('inf')
+    #     minIndex = 0
+    #     for i in range(len(foodList)):
+    #         food = foodList[i]
+    #         currHeur = abs(position[0]-food[0]) + abs(position[1] - food[1])
+    #         if currHeur <= minStep:
+    #             minStep = currHeur
+    #             minIndex = i
+    #     maxStep = float('-inf')
+    #     for i in range(len(foodList)):
+    #         food = foodList[i]
+    #         minFood = foodList[minIndex]
+    #         currHeur = abs(minFood[0]-food[0]) + abs(minFood[1] - food[1])
+    #         if currHeur >= maxStep:
+    #             maxStep = currHeur
+    #     maxStep += minStep
+    #     heur1 = maxStep
+    # else:
+    #     for food in foodList:
+    #         currHeur = abs(position[0]-food[0]) + abs(position[1] - food[1])
+    #         if(currHeur >= heur):
+    #             heur = currHeur
+    #     heur1 = heur
+
+    # heur = 0
+    # heur2 = 0
+    # if(len(foodList) > 1):
+    #     maxStep = float('-inf')
+    #     maxIndex = 0
+    #     for i in range(len(foodList)):
+    #         food = foodList[i]
+    #         currHeur = abs(position[0]-food[0]) + abs(position[1] - food[1])
+    #         if currHeur >= maxStep:
+    #             maxStep = currHeur
+    #             maxIndex = i
+    #     heur = float('-inf')
+
+    #     for i in range(len(foodList)):
+    #         food = foodList[i]
+    #         maxFood = foodList[maxIndex]
+    #         currHeur = abs(maxFood[0]-food[0]) + abs(maxFood[1] - food[1]) + abs(position[0] - food[0]) + abs(position[1] - food[1])
+    #         if currHeur >= heur:
+    #             heur= currHeur
+    #     heur2 = heur
+    # else:
+    #     for food in foodList:
+    #         currHeur = abs(position[0]-food[0]) + abs(position[1] - food[1])
+    #         if(currHeur >= heur):
+    #             heur = currHeur
+    #     heur2 =  heur
+    
+
+    #The Final 5/4 6527 Nodes Best Case n=2
+    heur3 = []
+    n = 2
+    if(len(foodList) > 0):
+        foodListCopy = []
+        for food in foodList:
+            foodListCopy.append(food)
+        minIndex = []
+        for k in range(n):
+            minStep = float('inf')
+            innerMinIndex = 0
+            for i in range(len(foodList)):
+                food = foodList[i]
+                currHeur = abs(position[0] - food[0]) + abs(position[1] - food[1])
+                if currHeur < minStep and i not in minIndex:
+                    minStep = currHeur
+                    innerMinIndex = i
+
+
+            minIndex.append(innerMinIndex)
+            heur3.append(minStep)
+
+        for i in range(len(minIndex)):
+            index = minIndex[i]
+            foodListCopy = []
+            for food in foodList:
+                foodListCopy.append(food)
+
+            minFood = foodListCopy[index]
+            del foodListCopy[index]
+            
+            while len(foodListCopy) > 0:
+                minStep = float('inf')
+                innerMinIndex = 0
+                for j in range(len(foodListCopy)):
+                    food = foodListCopy[j]
+                    currHeur = abs(minFood[0] - food[0]) + abs(minFood[1] - food[1])
+                    if currHeur < minStep:
+                        minStep = currHeur
+                        innerMinIndex = j
+                minFood = foodListCopy[innerMinIndex]
+                del foodListCopy[innerMinIndex]
+                heur3[i] += minStep
+
+    else:
+        heur3 = [0]
+    #return 0 
+    return min(heur3)
+    
+
+    #Furthest Food From Furthest Food 4/4 8016 Nodes
+    # heur = 0
+    # if(len(foodList) > 1):
+    #     maxStep = float('-inf')
+    #     maxIndex = 0
+    #     for i in range(len(foodList)):
+    #         food = foodList[i]
+    #         currHeur = abs(position[0]-food[0]) + abs(position[1] - food[1])
+    #         if currHeur >= maxStep:
+    #             maxStep = currHeur
+    #             maxIndex = i
+    #     heur = float('-inf')
+
+    #     for i in range(len(foodList)):
+    #         food = foodList[i]
+    #         maxFood = foodList[maxIndex]
+    #         currHeur = abs(maxFood[0]-food[0]) + abs(maxFood[1] - food[1]) + abs(position[0] - food[0]) + abs(position[1] - food[1])
+    #         if currHeur >= heur:
+    #             heur= currHeur
+    #     return heur
+    # else:
+    #     for food in foodList:
+    #         currHeur = abs(position[0]-food[0]) + abs(position[1] - food[1])
+    #         if(currHeur >= heur):
+    #             heur = currHeur
+    #     return heur
+
 
 class ClosestDotSearchAgent(SearchAgent):
     "Search for all food using a sequence of searches"
@@ -555,6 +732,19 @@ class ClosestDotSearchAgent(SearchAgent):
         problem = AnyFoodSearchProblem(gameState)
 
         "*** YOUR CODE HERE ***"
+        foodList = food.asList()
+        foodDist = []
+        x,y = startPosition
+        for food in foodList:
+            foodDist.append([food,(abs(food[0]-x)+abs(food[1]-y))])
+        minFoodDist = min(foodDist, key = lambda dist: dist[1])
+        minFood = minFoodDist[0]
+        prob = PositionSearchProblem(gameState, start=startPosition, goal=minFood, warn=False, visualize=False)
+        return  search.bfs(prob)
+
+
+        
+
         util.raiseNotDefined()
 
 class AnyFoodSearchProblem(PositionSearchProblem):
@@ -591,6 +781,11 @@ class AnyFoodSearchProblem(PositionSearchProblem):
         x,y = state
 
         "*** YOUR CODE HERE ***"
+        food = self.food
+        if len(food.asList() == 0):
+            return True
+        return False
+
         util.raiseNotDefined()
 
 def mazeDistance(point1, point2, gameState):
